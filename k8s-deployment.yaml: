@@ -13,8 +13,8 @@ spec:
         app: weather-app
     spec:
       containers:
-      - name: weather-container
-        image: your-dockerhub-username/weather-app:latest
+      - name: weather-app
+        image: nithya0326/weather-app:latest
         ports:
         - containerPort: 80
 
@@ -30,4 +30,4 @@ spec:
   ports:
     - port: 80
       targetPort: 80
-      nodePort: 30036  # optional port for local access
+      nodePort: 30036  # You can access it via http://<ec2-ip>:30036
