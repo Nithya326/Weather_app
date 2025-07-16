@@ -2,40 +2,44 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "your-dockerhub-username/weather-app:latest"
+        DOCKERHUB_USER = 'nithya0326'
+        IMAGE_NAME = "${DOCKERHUB_USER}/weather-app:latest"
     }
 
     stages {
-        stage('Clone') {
-            steps {
-                git 'https://github.com/Nithya326/Weather_app.git'
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                    docker build -t weather-app .
-                    docker tag weather-app $IMAGE_NAME
-                '''
+                echo "Building Docker image..."
+                sh 'docker build -t weather-app .'
+                sh 'docker tag weather-app $IMAGE_NAME'
             }
         }
 
         stage('Push to DockerHub') {
             steps {
+                echo "Pushing image to DockerHub..."
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                        echo $PASS | docker login -u $USER --password-stdin
-                        docker push $IMAGE_NAME
-                    '''
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                    sh 'docker push $IMAGE_NAME'
                 }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
+                echo "Deploying to Kubernetes..."
                 sh 'kubectl apply -f k8s-deployment.yaml'
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ CI/CD pipeline completed successfully!"
+        }
+        failure {
+            echo "❌ CI/CD pipeline failed. Check console output."
         }
     }
 }
