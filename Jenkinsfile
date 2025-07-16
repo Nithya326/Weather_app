@@ -1,12 +1,12 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Clone') {
-            steps {
-                git 'https://github.com/Nithya326/Weather_app.git/'
-            }
-        }
+stage('Clone') {
+  steps {
+    git 'https://github.com/Nithya326/Weather_app.git'
+  }
+}
+
 
         stage('Build Docker Image') {
             steps {
