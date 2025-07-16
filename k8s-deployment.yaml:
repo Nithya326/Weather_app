@@ -13,7 +13,21 @@ spec:
         app: weather-app
     spec:
       containers:
-      - name: weather-app
-        image: <YOUR_DOCKERHUB_USERNAME>/weather-app:latest
+      - name: weather-container
+        image: your-dockerhub-username/weather-app:latest
         ports:
         - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-service
+spec:
+  type: NodePort
+  selector:
+    app: weather-app
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30036  # optional port for local access
