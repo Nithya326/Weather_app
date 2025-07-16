@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: weather-app
+  labels:
+    app: weather-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: weather-app
@@ -13,21 +15,7 @@ spec:
         app: weather-app
     spec:
       containers:
-      - name: weather-app
-        image: nithya0326/weather-app:latest
-        ports:
-        - containerPort: 80
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: weather-service
-spec:
-  type: NodePort
-  selector:
-    app: weather-app
-  ports:
-    - port: 80
-      targetPort: 80
-      nodePort: 30036  # You can access it via http://<ec2-ip>:30036
+        - name: weather-app
+          image: <your-dockerhub-username>/weather-app:latest
+          ports:
+            - containerPort: 80
