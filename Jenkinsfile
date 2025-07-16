@@ -1,50 +1,33 @@
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        DOCKERHUB_USER = 'nithya0326'
-        IMAGE_NAME = "${DOCKERHUB_USER}/weather-app:latest"
+  environment {
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Add in Jenkins
+  }
+
+  stages {
+    stage('Clone') {
+      steps {
+        git 'https://github.com/Nithya326/Weather_app.git'
+      }
     }
 
-    stages {
-        stage('Build Docker Image') {
-            steps {
-                echo "📦 Building Docker image..."
-                sh 'docker build -t weather-app .'
-                sh 'docker tag weather-app $IMAGE_NAME'
-            }
-        }
-
-        stage('Push to DockerHub') {
-            steps {
-                echo "☁️ Pushing image to DockerHub..."
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
-                    sh 'docker push $IMAGE_NAME'
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                echo "🚀 Deploying to Kubernetes..."
-
-                // Debug: show where we are and what files exist
-                sh 'echo "Current Directory:" && pwd'
-                sh 'echo "Files in workspace:" && ls -la'
-
-                // Apply K8s config
-                sh 'kubectl apply -f k8s-deployment.yaml'
-            }
-        }
+    stage('Build & Push Docker Image') {
+      steps {
+        sh '''
+          docker build -t weather-app .
+          docker tag weather-app $DOCKERHUB_CREDENTIALS_USR/weather-app:latest
+          echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+          docker push $DOCKERHUB_CREDENTIALS_USR/weather-app:latest
+        '''
+      }
     }
 
-    post {
-        success {
-            echo "✅ Pipeline completed successfully!"
-        }
-        failure {
-            echo "❌ Pipeline failed. Check logs above."
-        }
+    stage('Deploy to EKS') {
+      steps {
+        sh 'kubectl apply -f k8s/deployment.yaml'
+        sh 'kubectl apply -f k8s/service.yaml'
+      }
     }
+  }
 }
